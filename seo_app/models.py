@@ -28,10 +28,15 @@ class PageAnalysis(models.Model):
     score_breakdown = models.JSONField(default=list)
     rule_issues = models.JSONField(default=list)
 
-    # HTML (optional: store snippet only)
+    # HTML snippet
     raw_html_snippet = models.TextField(blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
+
+    # --- LLM Integration ---
+    llm_model = models.CharField(max_length=128, blank=True)  # e.g., "gpt-4o-mini"
+    llm_suggestions = models.JSONField(default=dict, blank=True)
+    llm_generated_at = models.DateTimeField(null=True, blank=True)  # <-- REQUIRED
 
     def __str__(self):
         return f"Analysis for {self.page.url} @ {self.created_at}"

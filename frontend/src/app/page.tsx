@@ -14,7 +14,20 @@ type ApiResult = {
   word_count?: number;
   images?: { src?: string; alt?: string }[];
   issues?: { code?: string; message?: string }[];
+  score?: number;
+  score_breakdown?: [string, number, string[]][];
+  rule_issues?: string[];
   raw_html_snippet?: string;
+  llm_suggestions?: {
+    improved_title?: string;
+    improved_meta_description?: string;
+    improved_h1?: string;
+    seo_summary?: string;
+    suggestions?: string[];
+    error?: string;
+    ok?: boolean;
+  };
+  llm_generated_at?: string;
   error?: string;
 };
 
@@ -124,6 +137,76 @@ export default function Home() {
                   <div className="text-sm text-green-700">No issues found</div>
                 )}
               </div>
+
+              {resp.llm_suggestions && !resp.llm_suggestions.error && (
+                <div className="p-4 border-2 border-green-500 rounded bg-green-50">
+                  <h3 className="font-bold text-green-900 mb-3">
+                    🤖 AI SEO Suggestions
+                  </h3>
+                  
+                  {resp.llm_suggestions.seo_summary && (
+                    <div className="mb-3 p-2 bg-white rounded border border-green-200">
+                      <h4 className="font-semibold text-black text-sm">Summary</h4>
+                      <p className="text-sm text-black mt-1">
+                        {resp.llm_suggestions.seo_summary}
+                      </p>
+                    </div>
+                  )}
+
+                  {resp.llm_suggestions.improved_title && (
+                    <div className="mb-3 p-2 bg-white rounded border border-green-200">
+                      <h4 className="font-semibold text-black text-sm">
+                        Improved Title
+                      </h4>
+                      <p className="text-sm text-blue-600 mt-1">
+                        {resp.llm_suggestions.improved_title}
+                      </p>
+                    </div>
+                  )}
+
+                  {resp.llm_suggestions.improved_meta_description && (
+                    <div className="mb-3 p-2 bg-white rounded border border-green-200">
+                      <h4 className="font-semibold text-black text-sm">
+                        Improved Meta Description
+                      </h4>
+                      <p className="text-sm text-blue-600 mt-1">
+                        {resp.llm_suggestions.improved_meta_description}
+                      </p>
+                    </div>
+                  )}
+
+                  {resp.llm_suggestions.improved_h1 && (
+                    <div className="mb-3 p-2 bg-white rounded border border-green-200">
+                      <h4 className="font-semibold text-black text-sm">
+                        Improved H1
+                      </h4>
+                      <p className="text-sm text-blue-600 mt-1">
+                        {resp.llm_suggestions.improved_h1}
+                      </p>
+                    </div>
+                  )}
+
+                  {resp.llm_suggestions.suggestions &&
+                    resp.llm_suggestions.suggestions.length > 0 && (
+                      <div className="p-2 bg-white rounded border border-green-200">
+                        <h4 className="font-semibold text-black text-sm mb-2">
+                          Quick Tips
+                        </h4>
+                        <ul className="list-disc pl-5 text-sm text-black space-y-1">
+                          {resp.llm_suggestions.suggestions.map((s, i) => (
+                            <li key={i}>{s}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                  {resp.llm_generated_at && (
+                    <div className="text-xs text-gray-500 mt-2">
+                      Generated: {new Date(resp.llm_generated_at).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+              )}
 
               <details className="p-3 border rounded text-black">
                 <summary className="cursor-pointer font-medium text-black">
