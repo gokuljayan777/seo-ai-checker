@@ -28,11 +28,28 @@ type ApiResult = {
     ok?: boolean;
   };
   llm_generated_at?: string;
+  // Sitemap crawl results
+  ok?: boolean;
+  base_url?: string;
+  sitemaps_found?: string[];
+  pages_analyzed?: number;
+  pages_failed?: number;
+  pages?: Array<{
+    url: string;
+    status: string;
+    status_code?: number;
+    score?: number;
+    title?: string;
+    issues_count?: number;
+    error?: string;
+  }>;
+  analyzed_at?: string;
   error?: string;
 };
 
 export default function Home() {
   const [url, setUrl] = useState("");
+  const [crawlSite, setCrawlSite] = useState(false);
   const [resp, setResp] = useState<ApiResult | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -43,7 +60,7 @@ export default function Home() {
     setResp(null);
 
     try {
-      const r = await axios.post("/api/analyze", { url });
+      const r = await axios.post("/api/analyze", { url, crawl_site: crawlSite });
       setResp(r.data);
     } catch (err: any) {
       console.error(err);
@@ -68,12 +85,25 @@ export default function Home() {
           className="w-full p-3 border rounded mb-3 text-black placeholder-black"
         />
 
+        <div className="flex items-center gap-3 mb-3">
+          <input
+            type="checkbox"
+            id="crawlSite"
+            checked={crawlSite}
+            onChange={(e) => setCrawlSite(e.target.checked)}
+            className="w-4 h-4"
+          />
+          <label htmlFor="crawlSite" className="text-black cursor-pointer">
+            Analyze entire site (via sitemap)
+          </label>
+        </div>
+
         <button
           onClick={analyze}
           disabled={loading}
           className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 transition disabled:bg-blue-300"
         >
-          {loading ? "Analyzing..." : "Analyze"}
+          {loading ? "Analyzing..." : crawlSite ? "Analyze Site" : "Analyze"}
         </button>
 
         <div className="mt-6 text-black">
@@ -87,7 +117,77 @@ export default function Home() {
             </div>
           )}
 
-          {resp && !resp.error && (
+          {/* Sitemap crawl results */}
+          {resp && resp.ok && resp.pages && (
+            <div className="space-y-4 text-black">
+              <div className="p-4 border-2 border-purple-500 rounded bg-purple-50">
+                <h2 className="font-bold text-purple-900 mb-3">
+                  📊 Site Analysis Report
+                </h2>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <div className="text-xs text-purple-600">Pages Analyzed</div>
+                    <div className="text-2xl font-bold text-purple-900">
+                      {resp.pages_analyzed}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-red-600">Failed</div>
+                    <div className="text-2xl font-bold text-red-900">
+                      {resp.pages_failed || 0}
+                    </div>
+                  </div>
+                </div>
+                {resp.sitemaps_found && resp.sitemaps_found.length > 0 && (
+                  <div className="text-xs text-purple-700 mb-2">
+                    Found {resp.sitemaps_found.length} sitemap(s)
+                  </div>
+                )}
+              </div>
+
+              {/* Pages list */}
+              <div className="p-3 border rounded">
+                <h3 className="font-bold text-black mb-2">Pages</h3>
+                <div className="max-h-96 overflow-y-auto space-y-2">
+                  {resp.pages.map((p, i) => (
+                    <div
+                      key={i}
+                      className={`p-2 rounded text-xs border ${
+                        p.status === "success"
+                          ? "bg-green-50 border-green-200"
+                          : "bg-red-50 border-red-200"
+                      }`}
+                    >
+                      <div className="font-semibold text-black truncate">
+                        {p.title || p.url}
+                      </div>
+                      <div className="text-gray-600 truncate text-xs">
+                        {p.url}
+                      </div>
+                      {p.status === "success" && (
+                        <div className="flex gap-2 mt-1 text-black">
+                          <span>Score: {p.score}/100</span>
+                          {p.issues_count && p.issues_count > 0 && (
+                            <span className="text-red-600">
+                              Issues: {p.issues_count}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {p.status === "error" && (
+                        <div className="text-red-600 text-xs mt-1">
+                          {p.error}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Single page results */}
+          {resp && !resp.error && !resp.pages && (
             <div className="space-y-4 text-black">
               <div className="p-4 border rounded bg-black text-white">
                 <div className="text-sm">Status: {resp.status_code}</div>

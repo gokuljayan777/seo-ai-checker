@@ -133,6 +133,7 @@ def parse_page(html: str, base_url: str = ""):
         "h3": h3,
         "images": images,
         "word_count": word_count,
+        "main_text": main_text,  # For readability analysis
         "issues": issues,
         "raw_html_snippet": (html or "")[:8000],
     }
