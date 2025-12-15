@@ -30,6 +30,10 @@ jobs:
         run: python manage.py migrate --noinput
       - name: Run backend tests
         run: python manage.py test
+      - name: Run Bandit (security scan)
+        run: |
+          python -m pip install bandit
+          bandit -r . -ll
 
   frontend:
     runs-on: ubuntu-latest
