@@ -18,6 +18,14 @@ from .competitor_views import (
     analyze_competitor_content,
     list_competitors,
 )
+from .backlink_views import (
+    analyze_backlinks,
+    top_referrers,
+    anchor_texts,
+    link_gap,
+    backlink_growth,
+    backlink_audit,
+)
 
 __all__ = [
     'analyze_url',
@@ -35,4 +43,10 @@ __all__ = [
     'track_serp_positions',
     'analyze_competitor_content',
     'list_competitors',
+    'analyze_backlinks',
+    'top_referrers',
+    'anchor_texts',
+    'link_gap',
+    'backlink_growth',
+    'backlink_audit',
 ]

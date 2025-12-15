@@ -15,6 +15,12 @@ from .views import (
     track_serp_positions,
     analyze_competitor_content,
     list_competitors,
+    analyze_backlinks,
+    top_referrers,
+    anchor_texts,
+    link_gap,
+    backlink_growth,
+    backlink_audit,
 )
 
 urlpatterns = [
@@ -38,4 +44,11 @@ urlpatterns = [
     path('competitors/track-serp/', track_serp_positions, name='track_serp_positions'),
     path('competitors/analyze-content/', analyze_competitor_content, name='analyze_competitor_content'),
     path('competitors/list/', list_competitors, name='list_competitors'),
+    # Backlink Analysis endpoints (Phase 5)
+    path('backlinks/analyze/', analyze_backlinks, name='backlink_analyze'),
+    path('backlinks/top-referrers/', top_referrers, name='backlink_top_referrers'),
+    path('backlinks/anchor-texts/', anchor_texts, name='backlink_anchor_texts'),
+    path('backlinks/link-gap/', link_gap, name='backlink_link_gap'),
+    path('backlinks/growth/', backlink_growth, name='backlink_growth'),
+    path('backlinks/audit/', backlink_audit, name='backlink_audit'),
 ]
