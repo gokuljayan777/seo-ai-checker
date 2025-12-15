@@ -10,6 +10,14 @@ from .keyword_views import (
     track_keyword_ranking,
     keyword_list,
 )
+from .competitor_views import (
+    analyze_competitor,
+    compare_competitors,
+    get_competitor_strategies,
+    track_serp_positions,
+    analyze_competitor_content,
+    list_competitors,
+)
 
 __all__ = [
     'analyze_url',
@@ -21,4 +29,10 @@ __all__ = [
     'keyword_trends',
     'track_keyword_ranking',
     'keyword_list',
+    'analyze_competitor',
+    'compare_competitors',
+    'get_competitor_strategies',
+    'track_serp_positions',
+    'analyze_competitor_content',
+    'list_competitors',
 ]

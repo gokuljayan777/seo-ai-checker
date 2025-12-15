@@ -9,6 +9,12 @@ from .views import (
     keyword_trends,
     track_keyword_ranking,
     keyword_list,
+    analyze_competitor,
+    compare_competitors,
+    get_competitor_strategies,
+    track_serp_positions,
+    analyze_competitor_content,
+    list_competitors,
 )
 
 urlpatterns = [
@@ -24,4 +30,12 @@ urlpatterns = [
     path('keywords/trends/', keyword_trends, name='keyword_trends'),
     path('keywords/track-ranking/', track_keyword_ranking, name='track_keyword_ranking'),
     path('keywords/list/', keyword_list, name='keyword_list'),
+    
+    # Competitor Analysis endpoints (Phase 4)
+    path('competitors/analyze/', analyze_competitor, name='analyze_competitor'),
+    path('competitors/compare/', compare_competitors, name='compare_competitors'),
+    path('competitors/strategies/', get_competitor_strategies, name='competitor_strategies'),
+    path('competitors/track-serp/', track_serp_positions, name='track_serp_positions'),
+    path('competitors/analyze-content/', analyze_competitor_content, name='analyze_competitor_content'),
+    path('competitors/list/', list_competitors, name='list_competitors'),
 ]
