@@ -62,9 +62,10 @@ export default function Home() {
     try {
       const r = await axios.post("/api/analyze", { url, crawl_site: crawlSite });
       setResp(r.data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setResp({ error: err?.message || "Failed to connect to backend" });
+      const msg = err instanceof Error ? err.message : String(err);
+      setResp({ error: msg || "Failed to connect to backend" });
     } finally {
       setLoading(false);
     }

@@ -82,7 +82,8 @@ class BacklinkAnalyzer:
 
     # Helper heuristics
     def _seeded_random(self, key: str) -> random.Random:
-        seed = int(hashlib.md5(key.encode()).hexdigest(), 16) % (2**32)
+        # Use SHA256 for a deterministic but stronger hash for seeding (non-cryptographic use)
+        seed = int(hashlib.sha256(key.encode()).hexdigest(), 16) % (2**32)
         return random.Random(seed)
 
     def _estimate_total_backlinks(self, domain: str) -> int:

@@ -1,6 +1,26 @@
 # seo_app/services/sitemap_crawler.py
 import os
-import xml.etree.ElementTree as ET
+
+# Use defusedxml when available to safely parse untrusted XML
+try:
+    from defusedxml import ElementTree as ET
+
+    # Replace vulnerable stdlib XML parsers with safe alternatives
+    try:
+        from defusedxml import defuse_stdlib
+
+        defuse_stdlib()
+    except Exception:
+        # If defuse_stdlib is unavailable, proceed; ElementTree above is still defused
+        pass
+except Exception:
+    import xml.etree.ElementTree as ET
+
+# Prefer a defused fromstring when available; fall back to ET.fromstring
+try:
+    from defusedxml.ElementTree import fromstring as _safe_fromstring
+except Exception:
+    _safe_fromstring = ET.fromstring
 from collections import deque
 from typing import Any, Dict, List
 from urllib.parse import urljoin, urlparse
@@ -80,7 +100,7 @@ def _parse_sitemap_xml(xml_content: str, base_url: str) -> List[str]:
     """
     urls = []
     try:
-        root = ET.fromstring(xml_content)
+        root = _safe_fromstring(xml_content)
 
         # Try with namespace first
         ns = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}

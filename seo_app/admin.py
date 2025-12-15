@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Page, PageAnalysis, Domain, Backlink, Keyword, Competitor
+
+from .models import Backlink, Competitor, Domain, Keyword, Page, PageAnalysis
 
 # Register main models for admin UI
 admin.site.register(Page)

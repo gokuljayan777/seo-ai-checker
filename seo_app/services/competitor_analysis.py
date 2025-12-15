@@ -174,17 +174,24 @@ class CompetitorAnalyzer:
     def _estimate_traffic(self, domain: str) -> int:
         """Estimate monthly organic traffic for a domain."""
         # Heuristic-based estimation
-        hash_val = int(hashlib.md5(domain.encode()).hexdigest(), 16)
+        hash_val = int(hashlib.sha256(domain.encode()).hexdigest(), 16)
+
+        # Base traffic seeded from hash to give deterministic pseudo-random values
         base_traffic = (hash_val % 50000) + 100
 
-        if domain.count(".") == 1:  # Root domain
+        # Root domains generally have more traffic than subdomains
+        if domain.count(".") == 1:
             base_traffic *= 1.5
+
+        # Blogs and news sites tend to have higher traffic
+        if "blog" in domain or "news" in domain:
+            base_traffic *= 1.2
 
         return int(base_traffic)
 
     def _estimate_backlinks(self, domain: str) -> int:
         """Estimate number of backlinks for a domain."""
-        hash_val = int(hashlib.md5(domain.encode()).hexdigest(), 16)
+        hash_val = int(hashlib.sha256(domain.encode()).hexdigest(), 16)
         backlinks = (hash_val % 10000) + 50
 
         if "enterprise" in domain or "main" in domain:
@@ -204,7 +211,7 @@ class CompetitorAnalyzer:
     def _analyze_content_quality(self, domain: str) -> int:
         """Score content quality (0-100)."""
         # Heuristic scoring
-        hash_val = int(hashlib.md5(domain.encode()).hexdigest(), 16)
+        hash_val = int(hashlib.sha256(domain.encode()).hexdigest(), 16)
         quality = (hash_val % 40) + 50  # 50-90 range
         return quality
 
@@ -257,7 +264,7 @@ class CompetitorAnalyzer:
 
     def _estimate_social_signals(self, domain: str) -> Dict:
         """Estimate social media signals."""
-        base = int(hashlib.md5(domain.encode()).hexdigest(), 16) % 10000
+        base = int(hashlib.sha256(domain.encode()).hexdigest(), 16) % 10000
         return {
             "facebook_shares": base * 2,
             "twitter_mentions": base,
@@ -440,7 +447,7 @@ class CompetitorAnalyzer:
         """Get estimated SERP position for keyword."""
         # Hash-based consistent estimation
         hash_str = f"{domain}:{keyword}"
-        hash_val = int(hashlib.md5(hash_str.encode()).hexdigest(), 16)
+        hash_val = int(hashlib.sha256(hash_str.encode()).hexdigest(), 16)
         position = (hash_val % 20) + 1
 
         return {
@@ -490,7 +497,7 @@ class CompetitorAnalyzer:
         """Estimate readability score (0-100)."""
         quality = self._analyze_content_quality(domain)
         return min(
-            100, quality + (int(hashlib.md5(domain.encode()).hexdigest(), 16) % 20)
+            100, quality + (int(hashlib.sha256(domain.encode()).hexdigest(), 16) % 20)
         )
 
     def _score_seo_optimization(self, domain: str) -> int:
