@@ -6,7 +6,6 @@ Keyword Research API Views
 import logging
 from datetime import datetime
 
-from django.core.cache import cache
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response

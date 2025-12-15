@@ -13,7 +13,7 @@ without requiring a paid backlink provider. Optional SerpAPI or other
 import hashlib
 import logging
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Tuple
 
 from django.core.cache import cache

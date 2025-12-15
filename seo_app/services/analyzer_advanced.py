@@ -11,7 +11,6 @@ Advanced SEO audit analyzer with expanded rule checks:
 """
 
 import re
-from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
@@ -126,7 +125,6 @@ def check_crawlability(html: str) -> tuple:
 
     # Check for proper heading hierarchy
     h1s = soup.find_all("h1")
-    h2s = soup.find_all("h2")
     if len(h1s) == 0:
         issues.append("No H1 tag found - critical for crawlability")
         points -= 10

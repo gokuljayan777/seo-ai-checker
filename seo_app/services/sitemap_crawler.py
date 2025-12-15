@@ -227,7 +227,7 @@ def crawl_site_from_sitemap(
 
     # If sitemap extraction failed, fall back to BFS crawling
     if not page_urls:
-        print(f"No URLs from sitemap, falling back to BFS crawler")
+        print("No URLs from sitemap, falling back to BFS crawler")
         page_urls = _crawl_site_bfs_fallback(base_url, max_pages=min(50, max_pages))
 
     if not page_urls:

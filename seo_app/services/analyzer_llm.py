@@ -2,7 +2,6 @@
 import json
 import os
 import time
-from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
 # Graceful import / compatibility across openai versions

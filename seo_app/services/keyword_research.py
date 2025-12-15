@@ -8,11 +8,9 @@ Keyword Research Service
 - Trend analysis
 """
 
-import json
 import logging
 import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List
 
 import requests
 from django.core.cache import cache
@@ -101,7 +99,7 @@ class KeywordResearcher:
                     # Parse number like "1,230,000" to 1230000
                     volume = int(volume_str.replace(",", ""))
                     return volume
-                except:
+                except Exception:
                     return int(volume_str) if volume_str.isdigit() else 0
 
             return 0

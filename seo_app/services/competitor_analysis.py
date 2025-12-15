@@ -9,13 +9,11 @@ Competitor Analysis Service
 """
 
 import hashlib
-import json
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Optional
 
-import requests
 from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
