@@ -1,6 +1,6 @@
 # seo_app/services/analyzer_gemini.py
-import os
 import json
+import os
 import time
 from typing import Any, Dict, Optional
 
@@ -24,10 +24,19 @@ def _build_prompt(parsed: Dict[str, Any]) -> str:
     wc = parsed.get("word_count", 0)
     issues = parsed.get("issues", [])
     # Handle both dict format (from crawler) and string format (from analyzer_rules)
-    issues_text = "; ".join([
-        f"{it.get('code')}: {it.get('message')}" if isinstance(it, dict) else str(it)
-        for it in issues
-    ]) or "none"
+    issues_text = (
+        "; ".join(
+            [
+                (
+                    f"{it.get('code')}: {it.get('message')}"
+                    if isinstance(it, dict)
+                    else str(it)
+                )
+                for it in issues
+            ]
+        )
+        or "none"
+    )
 
     prompt = f"""
 You are an SEO assistant. Given page metadata below, generate a JSON object ONLY (no explanation, no commentary).
@@ -69,7 +78,7 @@ def _extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
     start = text.find("{")
     end = text.rfind("}")
     if start != -1 and end != -1 and end > start:
-        cand = text[start:end+1]
+        cand = text[start : end + 1]
         try:
             return json.loads(cand)
         except Exception:
@@ -87,7 +96,7 @@ def _call_gemini(prompt: str, max_tokens: int = 500, temperature: float = 0.0):
     """
     if GEMINI_API_KEY is None:
         raise ValueError("GEMINI_API_KEY not set in environment")
-    
+
     try:
         model = genai.GenerativeModel(MODEL)
         response = model.generate_content(
@@ -102,7 +111,9 @@ def _call_gemini(prompt: str, max_tokens: int = 500, temperature: float = 0.0):
         raise ValueError(f"Gemini API error: {str(e)}")
 
 
-def generate_suggestions(parsed: Dict[str, Any], max_retries: int = 1) -> Dict[str, Any]:
+def generate_suggestions(
+    parsed: Dict[str, Any], max_retries: int = 1
+) -> Dict[str, Any]:
     """
     Call Gemini and return a dict:
       { improved_title, improved_meta_description, improved_h1, seo_summary, suggestions }
@@ -122,7 +133,13 @@ def generate_suggestions(parsed: Dict[str, Any], max_retries: int = 1) -> Dict[s
                     continue
                 raise ValueError("LLM returned unparsable output", assistant_text)
 
-            required = ["improved_title", "improved_meta_description", "improved_h1", "seo_summary", "suggestions"]
+            required = [
+                "improved_title",
+                "improved_meta_description",
+                "improved_h1",
+                "seo_summary",
+                "suggestions",
+            ]
             missing = [k for k in required if k not in parsed_json]
             for k in missing:
                 parsed_json[k] = "" if k != "suggestions" else []

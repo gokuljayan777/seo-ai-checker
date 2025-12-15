@@ -5,15 +5,14 @@ import traceback
 from datetime import timedelta
 
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 
-from .services.crawler import fetch_html, parse_page
-from .services.analyzer_rules import run_all_rules
+from .models import AuditHistory, Page, PageAnalysis
 from .services.analyzer_advanced import run_advanced_rules
-
-from .models import Page, PageAnalysis, AuditHistory
+from .services.analyzer_rules import run_all_rules
+from .services.crawler import fetch_html, parse_page
 
 # LLM service - using Gemini (free tier, no credits needed)
 try:
@@ -36,11 +35,15 @@ except Exception as e:
 @api_view(["GET", "POST"])
 def analyze_url(request):
     if request.method == "GET":
-        return Response({"message": "API working. Use POST {'url': '...'} or {'url': '...', 'crawl_site': true}"})
+        return Response(
+            {
+                "message": "API working. Use POST {'url': '...'} or {'url': '...', 'crawl_site': true}"
+            }
+        )
 
     url = request.data.get("url")
     crawl_site = request.data.get("crawl_site", False)
-    
+
     if not url:
         return Response({"error": "URL missing"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -48,7 +51,9 @@ def analyze_url(request):
     if crawl_site and crawl_site_from_sitemap:
         try:
             # Allow forcing LLM suggestions during site crawl
-            force_llm = (request.GET.get("force_llm", "false").lower() == "true") or bool(request.data.get("force_llm", False))
+            force_llm = (
+                request.GET.get("force_llm", "false").lower() == "true"
+            ) or bool(request.data.get("force_llm", False))
             result = crawl_site_from_sitemap(url, max_pages=500, force_llm=force_llm)
             return Response(result)
         except Exception as e:
@@ -77,20 +82,18 @@ def analyze_url(request):
 
     # Analyze with basic rules
     score, breakdown, issues = run_all_rules(parsed)
-    
+
     # Analyze with advanced rules (Core Web Vitals, Mobile, Schema, Security, etc.)
     advanced_score, advanced_breakdown, advanced_issues = run_advanced_rules(
-        parsed, 
-        html=fetch_res["html"], 
-        base_url=fetch_res["url"]
+        parsed, html=fetch_res["html"], base_url=fetch_res["url"]
     )
-    
+
     # Combine scores: basic rules (40%) + advanced rules (60%)
     combined_score = int((score * 0.4) + (advanced_score * 0.6))
-    
+
     # Combine all issues
     all_issues = issues + advanced_issues
-    
+
     # Add issues to parsed dict for LLM (required by _build_prompt)
     parsed["issues"] = all_issues
 
@@ -99,19 +102,19 @@ def analyze_url(request):
     formatted_issues = [
         {
             "code": issue.lower().replace(" ", "_").replace("(", "").replace(")", ""),
-            "message": issue
+            "message": issue,
         }
         for issue in all_issues
     ]
-    
+
     # Categorize issues by severity
     critical_issues = []
     warning_issues = []
     info_issues = []
-    
+
     critical_keywords = ["missing", "no h1", "noindex", "ssl", "https"]
     warning_keywords = ["short", "long", "multiple", "thin", "broken"]
-    
+
     for issue in formatted_issues:
         msg_lower = issue["message"].lower()
         if any(kw in msg_lower for kw in critical_keywords):
@@ -166,7 +169,7 @@ def analyze_url(request):
         rule_issues=all_issues,
         raw_html_snippet=parsed.get("raw_html_snippet", ""),
     )
-    
+
     # Save audit history for trend tracking
     try:
         AuditHistory.objects.create(
@@ -214,14 +217,14 @@ def analyze_url(request):
                     # log the error but don't fail; use fallback
                     print("LLM generation failed:", e, file=sys.stderr)
                     llm_out = None
-            
+
             # Use fallback if LLM unavailable or failed
             if llm_out is None:
                 llm_out = generate_suggestions_from_issues(parsed)
                 result["llm_suggestions"] = {**llm_out, "fallback": True}
             else:
                 result["llm_suggestions"] = llm_out or {}
-            
+
             # Save to database
             pa.llm_suggestions = result["llm_suggestions"]
             pa.llm_model = os.getenv("LLM_MODEL", "fallback-rule-based")
@@ -234,7 +237,6 @@ def analyze_url(request):
         traceback.print_exc()
         # Provide fallback even on error
         result["llm_suggestions"] = generate_suggestions_from_issues(parsed)
-
 
     # Return full result (LLM fields included if available)
     return Response(result)

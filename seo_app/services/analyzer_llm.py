@@ -1,14 +1,15 @@
 # seo_app/services/analyzer_llm.py
-import os
 import json
+import os
 import time
-from typing import Any, Dict, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
 
 # Graceful import / compatibility across openai versions
 try:
     # new v1+ package style
     from openai import OpenAI as OpenAIClient
+
     _OPENAI_NEW = True
 except Exception:
     _OPENAI_NEW = False
@@ -44,10 +45,19 @@ def _build_prompt(parsed: Dict[str, Any]) -> str:
     wc = parsed.get("word_count", 0)
     issues = parsed.get("issues", [])
     # Handle both dict format (from crawler) and string format (from analyzer_rules)
-    issues_text = "; ".join([
-        f"{it.get('code')}: {it.get('message')}" if isinstance(it, dict) else str(it)
-        for it in issues
-    ]) or "none"
+    issues_text = (
+        "; ".join(
+            [
+                (
+                    f"{it.get('code')}: {it.get('message')}"
+                    if isinstance(it, dict)
+                    else str(it)
+                )
+                for it in issues
+            ]
+        )
+        or "none"
+    )
 
     prompt = f"""
 You are an SEO assistant. Given page metadata below, generate a JSON object ONLY (no explanation, no commentary).
@@ -89,7 +99,7 @@ def _extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
     start = text.find("{")
     end = text.rfind("}")
     if start != -1 and end != -1 and end > start:
-        cand = text[start:end+1]
+        cand = text[start : end + 1]
         try:
             return json.loads(cand)
         except Exception:
@@ -100,7 +110,12 @@ def _extract_json_from_text(text: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def _call_llm(prompt: str, max_tokens: int = 500, temperature: float = 0.0, timeout: int = LLM_TIMEOUT):
+def _call_llm(
+    prompt: str,
+    max_tokens: int = 500,
+    temperature: float = 0.0,
+    timeout: int = LLM_TIMEOUT,
+):
     """
     Unified wrapper that calls either new client (OpenAI()) or old openai.ChatCompletion API.
     Returns the assistant text.
@@ -112,7 +127,10 @@ def _call_llm(prompt: str, max_tokens: int = 500, temperature: float = 0.0, time
         resp = client.chat.completions.create(
             model=MODEL,
             messages=[
-                {"role": "system", "content": "You are a helpful SEO assistant that must output ONLY JSON."},
+                {
+                    "role": "system",
+                    "content": "You are a helpful SEO assistant that must output ONLY JSON.",
+                },
                 {"role": "user", "content": prompt},
             ],
             max_tokens=max_tokens,
@@ -130,7 +148,11 @@ def _call_llm(prompt: str, max_tokens: int = 500, temperature: float = 0.0, time
                 assistant_text = first.message.content
             else:
                 # fallback to dict access
-                assistant_text = first.get("message", {}).get("content") if isinstance(first, dict) else None
+                assistant_text = (
+                    first.get("message", {}).get("content")
+                    if isinstance(first, dict)
+                    else None
+                )
             assistant_text = assistant_text or ""
             return assistant_text
         # fallback
@@ -141,7 +163,10 @@ def _call_llm(prompt: str, max_tokens: int = 500, temperature: float = 0.0, time
         resp = openai.ChatCompletion.create(
             model=MODEL,
             messages=[
-                {"role": "system", "content": "You are a helpful SEO assistant that must output ONLY JSON."},
+                {
+                    "role": "system",
+                    "content": "You are a helpful SEO assistant that must output ONLY JSON.",
+                },
                 {"role": "user", "content": prompt},
             ],
             max_tokens=max_tokens,
@@ -158,7 +183,9 @@ def _call_llm(prompt: str, max_tokens: int = 500, temperature: float = 0.0, time
         return json.dumps(resp)
 
 
-def generate_suggestions(parsed: Dict[str, Any], max_retries: int = 1) -> Dict[str, Any]:
+def generate_suggestions(
+    parsed: Dict[str, Any], max_retries: int = 1
+) -> Dict[str, Any]:
     """
     Call the LLM and return a dict:
       { improved_title, improved_meta_description, improved_h1, seo_summary, suggestions }
@@ -173,7 +200,9 @@ def generate_suggestions(parsed: Dict[str, Any], max_retries: int = 1) -> Dict[s
 
     for attempt in range(max_retries + 1):
         try:
-            assistant_text = _call_llm(prompt, max_tokens=500, temperature=0.0, timeout=LLM_TIMEOUT)
+            assistant_text = _call_llm(
+                prompt, max_tokens=500, temperature=0.0, timeout=LLM_TIMEOUT
+            )
             parsed_json = _extract_json_from_text(assistant_text or "")
             if parsed_json is None:
                 if attempt < max_retries:
@@ -181,7 +210,13 @@ def generate_suggestions(parsed: Dict[str, Any], max_retries: int = 1) -> Dict[s
                     continue
                 raise ValueError("LLM returned unparsable output", assistant_text)
 
-            required = ["improved_title", "improved_meta_description", "improved_h1", "seo_summary", "suggestions"]
+            required = [
+                "improved_title",
+                "improved_meta_description",
+                "improved_h1",
+                "seo_summary",
+                "suggestions",
+            ]
             missing = [k for k in required if k not in parsed_json]
             for k in missing:
                 parsed_json[k] = "" if k != "suggestions" else []

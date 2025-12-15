@@ -1,5 +1,6 @@
 # seo_app/services/analyzer_rules.py
 
+
 def score_title(title: str):
     if not title:
         return 0, ["Title missing"]
@@ -10,6 +11,7 @@ def score_title(title: str):
         return 12, ["Title too short"]
     else:
         return 15, ["Title too long"]
+
 
 def score_meta(md: str):
     if not md:
@@ -22,6 +24,7 @@ def score_meta(md: str):
     else:
         return 14, ["Meta description long"]
 
+
 def score_h1(h1_list):
     n = len(h1_list)
 
@@ -32,6 +35,7 @@ def score_h1(h1_list):
     if n > 1:
         return 7, [f"Multiple H1 tags ({n})"]
 
+
 def score_word_count(wc: int):
     if wc >= 800:
         return 20, []
@@ -41,6 +45,7 @@ def score_word_count(wc: int):
         return points, []
     else:
         return 5, [f"Thin content ({wc} words)"]
+
 
 def score_images(images):
     if not images:
@@ -57,6 +62,7 @@ def score_images(images):
         issues.append(f"{total - with_alt} images missing alt")
 
     return points, issues
+
 
 def run_all_rules(parsed):
     """

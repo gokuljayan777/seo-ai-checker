@@ -1,17 +1,18 @@
 # seo_app/services/crawler.py
 import re
 from urllib.parse import urljoin
+
 import requests
 from bs4 import BeautifulSoup
 
-DEFAULT_HEADERS = {
-    "User-Agent": "SEO-AI-Checker/1.0 (+https://example.com)"
-}
+DEFAULT_HEADERS = {"User-Agent": "SEO-AI-Checker/1.0 (+https://example.com)"}
+
 
 def _clean(text: str) -> str:
     if not text:
         return ""
     return re.sub(r"\s+", " ", text).strip()
+
 
 def fetch_html(url: str, timeout: int = 15):
     """
@@ -40,6 +41,7 @@ def fetch_html(url: str, timeout: int = 15):
             "error": str(exc),
         }
 
+
 def parse_page(html: str, base_url: str = ""):
     """
     Parse HTML and return a structured dict with title, meta_description,
@@ -57,7 +59,9 @@ def parse_page(html: str, base_url: str = ""):
     if desc and desc.get("content"):
         md = _clean(desc["content"])
     else:
-        og = soup.find("meta", attrs={"property": lambda v: v and v.lower() == "og:description"})
+        og = soup.find(
+            "meta", attrs={"property": lambda v: v and v.lower() == "og:description"}
+        )
         if og and og.get("content"):
             md = _clean(og["content"])
 
@@ -107,23 +111,49 @@ def parse_page(html: str, base_url: str = ""):
         if len(title) < 20:
             issues.append({"code": "short_title", "message": "Title is very short."})
         if len(title) > 80:
-            issues.append({"code": "long_title", "message": "Title is very long (might be truncated)."})
+            issues.append(
+                {
+                    "code": "long_title",
+                    "message": "Title is very long (might be truncated).",
+                }
+            )
     if not md:
-        issues.append({"code": "missing_meta_description", "message": "Meta description is missing."})
+        issues.append(
+            {
+                "code": "missing_meta_description",
+                "message": "Meta description is missing.",
+            }
+        )
     else:
         if len(md) < 50:
-            issues.append({"code": "short_meta", "message": "Meta description is very short."})
+            issues.append(
+                {"code": "short_meta", "message": "Meta description is very short."}
+            )
         if len(md) > 320:
-            issues.append({"code": "long_meta", "message": "Meta description is very long."})
+            issues.append(
+                {"code": "long_meta", "message": "Meta description is very long."}
+            )
     if len(h1) == 0:
         issues.append({"code": "missing_h1", "message": "No H1 found."})
     elif len(h1) > 1:
-        issues.append({"code": "multiple_h1", "message": f"Multiple H1 tags found ({len(h1)})."})
+        issues.append(
+            {"code": "multiple_h1", "message": f"Multiple H1 tags found ({len(h1)})."}
+        )
     if word_count < 200:
-        issues.append({"code": "thin_content", "message": f"Low word count ({word_count}). Consider expanding content."})
+        issues.append(
+            {
+                "code": "thin_content",
+                "message": f"Low word count ({word_count}). Consider expanding content.",
+            }
+        )
     imgs_without_alt = [img for img in images if not img["alt"]]
     if imgs_without_alt:
-        issues.append({"code": "missing_image_alt", "message": f"{len(imgs_without_alt)} images missing alt text."})
+        issues.append(
+            {
+                "code": "missing_image_alt",
+                "message": f"{len(imgs_without_alt)} images missing alt text.",
+            }
+        )
 
     return {
         "title": title,

@@ -11,11 +11,12 @@ without requiring a paid backlink provider. Optional SerpAPI or other
 """
 
 import hashlib
-import random
-from typing import Dict, List, Tuple
-from datetime import datetime, timedelta
-from django.core.cache import cache
 import logging
+import random
+from datetime import datetime, timedelta
+from typing import Dict, List, Tuple
+
+from django.core.cache import cache
 
 logger = logging.getLogger(__name__)
 CACHE_DURATION = 86400 * 7
@@ -61,8 +62,12 @@ class BacklinkAnalyzer:
 
     def compare_link_gap(self, source: str, target: str) -> Dict:
         """Compare backlinks between source and target, find gaps."""
-        source_links = set([r["referrer"] for r in self._top_referrers(source, limit=50)])
-        target_links = set([r["referrer"] for r in self._top_referrers(target, limit=50)])
+        source_links = set(
+            [r["referrer"] for r in self._top_referrers(source, limit=50)]
+        )
+        target_links = set(
+            [r["referrer"] for r in self._top_referrers(target, limit=50)]
+        )
 
         missing_for_source = list(target_links - source_links)
         missing_for_target = list(source_links - target_links)
@@ -77,21 +82,21 @@ class BacklinkAnalyzer:
 
     # Helper heuristics
     def _seeded_random(self, key: str) -> random.Random:
-        seed = int(hashlib.md5(key.encode()).hexdigest(), 16) % (2 ** 32)
+        seed = int(hashlib.md5(key.encode()).hexdigest(), 16) % (2**32)
         return random.Random(seed)
 
     def _estimate_total_backlinks(self, domain: str) -> int:
         r = self._seeded_random(domain)
-        base = (r.randint(50, 2000) * (len(domain) % 10 + 1))
+        base = r.randint(50, 2000) * (len(domain) % 10 + 1)
         # scale by domain depth
-        if domain.count('.') == 1:
+        if domain.count(".") == 1:
             base *= 3
         return int(base)
 
     def _estimate_referring_domains(self, domain: str) -> int:
         r = self._seeded_random(domain + "refs")
         refs = r.randint(20, 1200)
-        if domain.count('.') == 1:
+        if domain.count(".") == 1:
             refs = int(refs * 1.2)
         return refs
 
@@ -107,7 +112,19 @@ class BacklinkAnalyzer:
     def _anchor_texts(self, domain: str, limit: int = 10) -> List[Tuple[str, int]]:
         r = self._seeded_random(domain + "anchors")
         anchors = [
-            (f"{domain} {t}", r.randint(10, 500)) for t in ["best", "review", "guide", "tools", "tips", "tutorial", "compare", "top", "cheap", "buy"]
+            (f"{domain} {t}", r.randint(10, 500))
+            for t in [
+                "best",
+                "review",
+                "guide",
+                "tools",
+                "tips",
+                "tutorial",
+                "compare",
+                "top",
+                "cheap",
+                "buy",
+            ]
         ]
         return anchors[:limit]
 
